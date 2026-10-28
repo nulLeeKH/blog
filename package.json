@@ -1,0 +1,36 @@
+{
+  "name": "blog",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.5.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node dev.mjs",
+    "new": "node new.mjs",
+    "prepare": "husky",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "@shikijs/transformers": "4.5.0",
+    "github-slugger": "2.0.0",
+    "hast-util-to-html": "9.0.5",
+    "katex": "0.16.47",
+    "mdast-util-from-markdown": "2.0.3",
+    "mdast-util-gfm": "3.1.0",
+    "mdast-util-math": "3.0.0",
+    "mdast-util-to-hast": "13.2.1",
+    "micromark-extension-gfm": "3.0.0",
+    "micromark-extension-math": "3.1.0",
+    "shiki": "4.5.0",
+    "subset-font": "2.9.0",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "husky": "9.1.7"
+  }
+}

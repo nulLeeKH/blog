@@ -1,0 +1,832 @@
+/* nulLeeKH, "텍스트 문서" with a PC통신 feel: one column, ivory paper and ink (the logo's two colors), underlined
+   links that flip to reverse video, dashed and double rules, no accent color. Typeset entirely in D2Coding: Latin 0.5em, Hangul 1em,
+   so no letter-spacing anywhere (it would break the 1:2 column grid). */
+
+/* NAVER D2Coding 1.3.3, unmodified (WOFF2 compression only, so the OFL Reserved Font Name stays; license in
+   /fonts/OFL.txt). About 1.5MB per weight: a copy installed on the reader's machine is used first, and text shows
+   at once in the fallbacks below until the download finishes. Overrides: D2Coding's hhea metrics, so every
+   platform gets the same line box. */
+@font-face { font-family: 'D2Coding'; font-weight: 400; font-display: swap; src: local('D2Coding'), url(/fonts/D2Coding-Regular.woff2) format('woff2'); ascent-override: 85%; descent-override: 23%; line-gap-override: 8%; }
+@font-face { font-family: 'D2Coding'; font-weight: 700; font-display: swap; src: local('D2Coding Bold'), local('D2CodingBold'), url(/fonts/D2Coding-Bold.woff2) format('woff2'); ascent-override: 85%; descent-override: 23%; line-gap-override: 8%; }
+
+/* Fallbacks matched to D2Coding's metrics so the late font swap does not move lines.
+   override = target / size-adjust (CSS Fonts 5 scales overrides by size-adjust). */
+@font-face { font-family: 'D2 FB Menlo'; src: local('Menlo-Regular'), local('Menlo'); size-adjust: 83.05%; ascent-override: 102.35%; descent-override: 27.69%; line-gap-override: 9.63%; }
+@font-face { font-family: 'D2 FB Consolas'; src: local('Consolas'); size-adjust: 90.94%; ascent-override: 93.47%; descent-override: 25.29%; line-gap-override: 8.8%; }
+@font-face { font-family: 'D2 FB SD'; src: local('AppleSDGothicNeo-Regular'), local('Apple SD Gothic Neo'); size-adjust: 115.61%; ascent-override: 73.53%; descent-override: 19.9%; line-gap-override: 6.92%; }
+@font-face { font-family: 'D2 FB Malgun'; src: local('Malgun Gothic'), local('MalgunGothic'); ascent-override: 85%; descent-override: 23%; line-gap-override: 8%; }
+
+
+/* ---------- tokens ---------- */
+:root {
+  color-scheme: light;
+  --paper: #faf9f5;
+  --paper-2: #f0eee8;
+  --code-bg: #f2f0ea;
+  --ink: #171717;
+  --ink-2: #3d3d3d;
+  --muted: #5e5e5e;
+  --rule: #b9b5ab;
+  --rule-strong: #171717;
+  --accent: #171717;
+  --accent-strong: #000;
+  --accent-wash: rgba(23, 23, 23, .05);
+  --mark: rgba(255, 210, 0, .45);
+  --hl: rgba(23, 23, 23, .06);
+  --add: rgba(26, 127, 55, .11);
+  --del: rgba(207, 34, 46, .10);
+  --add-ink: #116329; /* the +/- signs on those lines, 4.5:1 on the tint */
+  --del-ink: #a40e26;
+  --note: #0969da;
+  --tip: #18762f; /* GitHub's alert colors, darkened to 4.5:1 on the alert tint */
+  --important: #7a48d6;
+  --warning: #8f5f00;
+  --caution: #cf222e;
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23faf9f5' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --sun: none;
+  --moon: block;
+
+  --font: 'D2Coding', 'D2 FB Menlo', 'D2 FB Consolas', 'D2 FB SD', 'D2 FB Malgun', ui-monospace, monospace;
+  --wrap: 42rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --measure: 40em; /* about 40 Hangul or 80 Latin characters, so code blocks fit 80 columns */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #171717;
+    --paper-2: #222;
+    --code-bg: #1e1e1e;
+    --ink: #ecebe6;
+    --ink-2: #c9c7c0;
+    --muted: #a09e97;
+    --rule: #55534e;
+    --rule-strong: #ecebe6;
+    --accent: #ecebe6;
+    --accent-strong: #fff;
+    --accent-wash: rgba(236, 235, 230, .06);
+    --mark: rgba(255, 210, 0, .28);
+    --hl: rgba(236, 235, 230, .08);
+    --add: rgba(63, 185, 80, .14);
+    --del: rgba(248, 81, 73, .14);
+    --add-ink: #3fb950;
+    --del-ink: #ff7b72;
+    --note: #4493f8;
+    --tip: #3fb950;
+    --important: #ab7df8;
+    --warning: #d29922;
+    --caution: #f85149;
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23171717' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --sun: block;
+    --moon: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171717;
+  --paper-2: #222;
+  --code-bg: #1e1e1e;
+  --ink: #ecebe6;
+  --ink-2: #c9c7c0;
+  --muted: #a09e97;
+  --rule: #55534e;
+  --rule-strong: #ecebe6;
+  --accent: #ecebe6;
+  --accent-strong: #fff;
+  --accent-wash: rgba(236, 235, 230, .06);
+  --mark: rgba(255, 210, 0, .28);
+  --hl: rgba(236, 235, 230, .08);
+  --add: rgba(63, 185, 80, .14);
+  --del: rgba(248, 81, 73, .14);
+  --add-ink: #3fb950;
+  --del-ink: #ff7b72;
+  --note: #4493f8;
+  --tip: #3fb950;
+  --important: #ab7df8;
+  --warning: #d29922;
+  --caution: #f85149;
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23171717' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --sun: block;
+  --moon: none;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 81.25%; /* 13px: Hangul 13px square, Latin 6.5px */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 1.5rem;
+}
+
+body {
+  display: flex; /* short pages (404, few tags) keep the footer at the bottom */
+  flex-direction: column;
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1rem/1.75 var(--font); /* dense 1em Hangul needs the leading */
+  font-synthesis: none; /* only the 400 and 700 faces exist: no fake italic or bold */
+  word-break: keep-all; /* wrap Korean at word (eojeol) boundaries */
+  overflow-wrap: break-word; /* but never let a long URL or identifier widen the page */
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: .22em; }
+a:hover { background: var(--ink); color: var(--paper); text-decoration: none; } /* the old terminal's reverse video */
+img, svg { max-width: 100%; }
+h1, h2, h3, h4 { font-weight: 700; line-height: 1.4; }
+button { font: inherit; }
+pre, code, kbd, samp { font-family: inherit; font-size: 1em; } /* the UA 'monospace' rule would shrink them */
+
+:focus-visible { outline: 1px dashed var(--ink); outline-offset: 2px; }
+::selection { background: var(--mark); color: var(--ink); }
+
+.wrap {
+  width: 100%;
+  max-width: calc(var(--wrap) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: 20;
+  padding: .5rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+.skip:focus { top: .75rem; }
+
+main { flex: 1 0 auto; }
+
+/* section headings (not the <g class="label"> mermaid draws) */
+.label:not(svg *) { margin: 0 0 .5rem; font-size: 1rem; font-weight: 700; line-height: 1.5; }
+
+/* ---------- header ---------- */
+.site-header { border-bottom: 1px dashed var(--rule); }
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  padding-block: .9rem;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.brand::before { /* the logo, drawn in the text color so it follows the theme */
+  content: "";
+  width: 1.7em;
+  height: 1.4em;
+  background: currentColor;
+  -webkit-mask: url(/logo.svg) center / contain no-repeat;
+  mask: url(/logo.svg) center / contain no-repeat;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nav a[aria-current] { font-weight: 700; }
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px dashed var(--rule);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.theme-toggle svg { width: 1rem; height: 1rem; }
+.theme-toggle .i-sun { display: var(--sun); }
+.theme-toggle .i-moon { display: var(--moon); }
+html:not(.js) .nav li:has(> .theme-toggle),
+html:not(.js) .toc-pct { display: none; }
+
+/* ---------- footer ---------- */
+.site-footer { margin-top: 4rem; border-top: 1px dashed var(--rule); }
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem 2rem;
+  padding-block: 1.25rem 2.5rem;
+  font-size: .875rem;
+  color: var(--muted);
+}
+.footer-inner p { margin: 0; }
+.footer-inner a { color: inherit; white-space: nowrap; }
+.footer-links { display: flex; gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+
+/* ---------- shared: tags, category links, term lists ---------- */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1rem; /* wrapped rows of links stay 24px apart (WCAG 2.5.8) */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: .875rem;
+}
+.tags a { color: var(--muted); overflow-wrap: anywhere; }
+.entry-cat { color: var(--ink-2); }
+
+.chips { display: flex; flex-wrap: wrap; gap: .35rem 1.25rem; margin: 0; padding: 0; list-style: none; }
+.chip { max-width: 100%; overflow-wrap: anywhere; } /* a long name without spaces wraps instead of widening a phone */
+.chip-count { color: var(--muted); }
+.chip-count::before { content: "("; }
+.chip-count::after { content: ")"; }
+.idx-name { min-width: 0; overflow-wrap: anywhere; }
+
+.draft-badge { font-size: .875rem; font-weight: 400; color: var(--muted); }
+.draft-badge::before { content: "["; }
+.draft-badge::after { content: "]"; }
+
+/* ---------- home ---------- */
+.home-section { padding-block: 1.5rem; }
+/* the masthead: the motto (the header already shows the name) and a blinking cursor, centered */
+.home-section:first-child { padding-top: 2.75rem; text-align: center; }
+.masthead-line { font-size: 1.25rem; }
+.masthead-line::after { content: "_"; animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .masthead-line::after { animation: none; } }
+
+/* ══ 카테고리 ═════ : section titles set into a double rule */
+.home-section:not(:first-child) > .label,
+.archive-head .label,
+.term-index > .label { display: flex; align-items: center; gap: .75rem; font-weight: 400; }
+:is(.home-section:not(:first-child) > .label, .archive-head .label, .term-index > .label)::before,
+:is(.home-section:not(:first-child) > .label, .archive-head .label, .term-index > .label)::after { content: ""; border-top: 3px double var(--rule); }
+:is(.home-section:not(:first-child) > .label, .archive-head .label, .term-index > .label)::before { flex: 0 0 2ch; }
+:is(.home-section:not(:first-child) > .label, .archive-head .label, .term-index > .label)::after { flex: 1; }
+.masthead-line { margin: 0; }
+.masthead-meta { margin: .25rem 0 0; font-size: .875rem; color: var(--muted); }
+
+.archive-head { padding-top: 1.5rem; }
+.archive-head .label { margin: 0; }
+.archive-sub { margin: 0; font-size: .875rem; color: var(--muted); }
+
+.year { padding-block: 1rem 0; }
+.year-num { margin: 0 0 .25rem; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.year-count { margin-left: .5em; font-size: .875rem; font-weight: 400; color: var(--muted); }
+
+.entries { margin: 0; padding: 0; list-style: none; }
+.entry {
+  display: grid;
+  grid-template-columns: 6ch minmax(0, 1fr);
+  column-gap: 1rem;
+  align-items: baseline;
+  padding-block: .3rem;
+}
+.entries--full .entry { grid-template-columns: 11ch minmax(0, 1fr); }
+.entry-date { color: var(--muted); font-variant-numeric: tabular-nums; }
+.entry-title { margin: 0; font-size: 1rem; line-height: 1.6; }
+.entry-desc { margin: 0; font-size: .9375rem; color: var(--ink-2); }
+.entry-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem 1rem; font-size: .875rem; }
+@media (max-width: 30rem) {
+  .entries--full .entry { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- index pages: categories, tags, a single term, 404 ---------- */
+.page-head { padding-block: 2.5rem 1.25rem; }
+.page-head .label { color: var(--muted); font-weight: 400; }
+.page-title { margin: 0; font-size: 1.375rem; line-height: 1.3; }
+.page-dek { margin: .5rem 0 0; color: var(--ink-2); }
+.nf-links { margin-top: 1rem; }
+
+.term-index { padding-block: 1.5rem; }
+.index-list { margin: 0; padding: 0; list-style: none; columns: 2 14rem; column-gap: 3rem; }
+.index-list li { break-inside: avoid; }
+.index-list a { display: flex; align-items: baseline; gap: .6rem; padding-block: .25rem; }
+.idx-hash { color: var(--muted); }
+.idx-dots { flex: 1; min-width: 1.5rem; border-bottom: 1px dotted var(--muted); transform: translateY(-.35em); }
+.idx-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.term-group { padding-block: 1.25rem; border-top: 1px dashed var(--rule); }
+.term-name { margin: 0 0 .25rem; font-size: 1rem; }
+.term-count { margin-left: .5em; font-size: .875rem; font-weight: 400; color: var(--muted); }
+
+.crumbs { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 .75rem; padding: 0; list-style: none; font-size: .875rem; color: var(--muted); }
+.crumbs li + li::before { content: "/"; margin-right: .5rem; }
+.crumbs a { color: var(--muted); }
+.crumbs li { overflow-wrap: anywhere; } /* a long term name in the last crumb */
+.term-title { margin: 0; font-size: 1.375rem; line-height: 1.3; }
+.term-title .hash { color: var(--muted); }
+.term-meta { margin: .5rem 0 0; font-size: .875rem; color: var(--muted); }
+.term-posts { border-top: 1px dashed var(--rule); }
+
+/* ---------- post: head ---------- */
+.post-head { padding-block: 2.5rem 1.5rem; }
+.kicker { margin: 0; font-size: .875rem; }
+.kicker a { color: var(--ink-2); }
+.post-title { margin: .25rem 0 .75rem; font-size: 1.5rem; line-height: 1.3; text-wrap: balance; }
+.post-head > .post-title:first-child { margin-top: 0; }
+.post-dek { margin: 0 0 1rem; color: var(--ink-2); }
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1.5rem;
+  margin: 0;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--rule);
+  font-size: .875rem;
+}
+.post-meta > div { display: flex; flex-wrap: wrap; gap: .5em; }
+.post-meta dt { color: var(--muted); }
+.post-meta dt::after { content: ":"; }
+.post-meta dd { margin: 0; }
+
+/* ---------- post: ToC, a plain box above the body ---------- */
+.toc-box { margin: 0 0 2rem; padding: .6rem 1rem; border: 1px dashed var(--rule); }
+.toc summary { display: flex; align-items: baseline; gap: .75rem; font-weight: 700; cursor: pointer; list-style: none; }
+.toc summary::-webkit-details-marker { display: none; }
+.toc summary::before { content: "[+]"; font-weight: 400; }
+.toc details[open] summary::before { content: "[-]"; }
+.toc-pct { margin-left: auto; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.toc-list { margin: .5rem 0 .25rem; padding: 0; list-style: none; counter-reset: toc; font-size: .9375rem; }
+.toc-list ol { margin: 0; padding: 0 0 0 3ch; list-style: none; }
+.toc-list > li:not(.toc-h3, .toc-plain) { counter-increment: toc; }
+.toc-list a { display: inline-block; padding-block: .1rem; }
+.toc-list > li > a::before { content: counter(toc, decimal-leading-zero) " "; color: var(--muted); }
+/* an h3 before the first h2, or an h2 inside <details>/an alert/a list (app.js): unnumbered, like in the body */
+.toc-list > :is(.toc-h3, .toc-plain) > a::before { content: ""; }
+.toc-list a[aria-current] { font-weight: 700; }
+
+/* reading progress: a thin bar on top */
+.progress-top {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 10;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--progress, 0));
+}
+html:not(.js) .progress-top { display: none; }
+
+/* ---------- post: body ---------- */
+.prose {
+  max-width: var(--measure);
+  counter-reset: sec;
+  text-wrap: pretty;
+}
+.prose > * { margin-block: 0 1.4em; }
+.prose p { margin-block: 0 1.4em; }
+.prose > :last-child { margin-bottom: 0; }
+
+.prose :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 1.5rem; text-wrap: balance; }
+.prose h2 {
+  margin: 2.4em 0 1em;
+  font-size: clamp(1.0625rem, .95rem + .4vw, 1.25rem);
+}
+/* the numbered sections only: a ## inside <details>, an alert or a list gets neither the number nor the rule */
+.prose > h2 { margin-top: 3.25em; padding-top: 2.25rem; border-top: 1px dashed var(--rule); counter-increment: sec; }
+.prose > :first-child { margin-top: 0; } /* whatever block opens the post sits right under the ToC */
+.prose > h2:first-child { padding-top: .25rem; border-top: 0; } /* opening the post: no second rule under the ToC box */
+.prose > h2::before {
+  content: counter(sec, decimal-leading-zero);
+  display: block;
+  margin-bottom: .75rem;
+  font-size: .875rem;
+  color: var(--accent);
+}
+.prose h3 { margin: 2.4em 0 .8em; font-size: 1.0625rem; line-height: 1.5; }
+.prose h4 { margin: 2em 0 .6em; font-size: 1rem; line-height: 1.6; color: var(--ink-2); }
+.prose :is(h1, h5, h6) { margin: 2em 0 .6em; font-size: 1rem; line-height: 1.6; }
+
+.anchor {
+  margin-left: .5em;
+  font-weight: 400;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.prose :is(h2, h3, h4):hover .anchor,
+.anchor:focus-visible { opacity: 1; }
+.anchor:hover { color: var(--accent); }
+@media (hover: none) { .anchor { opacity: 1; } } /* no hover to reveal it; faded it would fail contrast */
+
+.prose a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: .25em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.prose a:hover { text-decoration-color: currentColor; }
+.prose a[href^="http"] { overflow-wrap: anywhere; }
+
+.prose strong { font-weight: 700; color: var(--ink); }
+/* no italic face: emphasis is a highlighter band */
+.prose em {
+  font-style: normal;
+  font-synthesis: none;
+  padding-inline: .08em;
+  background: linear-gradient(transparent 58%, var(--mark) 58%, var(--mark) 94%, transparent 94%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.prose del { color: var(--muted); text-decoration-thickness: 1.5px; }
+.prose :is(em a, a em) { color: var(--accent-strong); } /* --accent is under 4.5:1 on the highlighter band */
+.prose em del { color: var(--ink-2); }
+.nb { white-space: nowrap; } /* Hangul held to an adjacent bracket, see HOLD in lib/util.mjs */
+
+/* Chips stay whole (Chrome would split `--` after the first '-'); lib/markdown.mjs marks code too long
+   for a phone line with .code-wrap, and those break anywhere with every line piece boxed. */
+.prose :not(pre) > code {
+  padding: .1em .3em;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper-2);
+  font-size: max(.875em, .85rem); /* never under 11px inside smaller text (tables, footnotes, alerts) */
+  color: var(--ink);
+  white-space: nowrap;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.prose :not(pre) > code.code-wrap { white-space: normal; overflow-wrap: anywhere; }
+.prose a > code { color: inherit; }
+
+kbd {
+  display: inline; /* an inline-block is atomic: keep-all would not hold it to the particle after it */
+  padding: .25em .45em;
+  white-space: nowrap;
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--paper);
+  font-size: max(.8125em, .85rem);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+sup, sub { line-height: 0; font-size: max(.83em, .85rem); } /* UA 'smaller', but never under 11px in tables and footnotes */
+
+/* lists */
+.prose ul,
+.prose ol { padding-left: 1.75em; }
+.prose ul { list-style-type: "-  "; }
+.prose ul ul { list-style-type: "·  "; }
+.prose ol ol { list-style-type: lower-alpha; }
+.prose li { margin-block: .3em; }
+.prose li::marker { color: var(--accent); }
+.prose ol > li::marker { font-weight: 700; }
+.prose li > ul,
+.prose li > ol { margin-block: .3em 0; }
+.prose li > p { margin-bottom: .6em; }
+
+.prose ul.contains-task-list { padding-left: 0; list-style: none; }
+.prose ul.contains-task-list > li:not(.task-list-item) { margin-left: 1.75em; list-style-type: "-  "; } /* plain items in a mixed list keep their bullet */
+.task-list-item { position: relative; padding-left: 1.85em; }
+.task-list-item input {
+  position: absolute;
+  left: 0;
+  top: .36em;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  border: 1.5px solid var(--ink-2);
+  border-radius: 3px;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.task-list-item input:checked {
+  border-color: var(--accent);
+  background: var(--accent) var(--check) center / 90% no-repeat;
+}
+
+/* quotes */
+.prose blockquote {
+  margin: 2.25em 0;
+  padding: .1em 0 .1em 1.5em;
+  border-left: 2px solid var(--ink);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--ink-2);
+}
+.prose blockquote p { margin-bottom: .6em; }
+.prose blockquote > :last-child { margin-bottom: 0; }
+
+/* GitHub alerts */
+.markdown-alert {
+  --alert: var(--note);
+  margin: 2em 0;
+  padding: .95rem 1.15rem;
+  border-left: 3px solid var(--alert);
+  background: color-mix(in srgb, var(--alert) 6%, transparent);
+  font-size: .9375rem;
+  line-height: 1.75;
+}
+.markdown-alert > :last-child { margin-bottom: 0; }
+.markdown-alert p { margin-bottom: .6em; }
+.markdown-alert-title {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 700;
+  color: var(--alert);
+}
+.markdown-alert-title svg { flex: none; fill: currentColor; }
+.markdown-alert-note { --alert: var(--note); }
+.markdown-alert-tip { --alert: var(--tip); }
+.markdown-alert-important { --alert: var(--important); }
+.markdown-alert-warning { --alert: var(--warning); }
+.markdown-alert-caution { --alert: var(--caution); }
+
+/* images and figures */
+.prose img { max-width: 100%; height: auto; vertical-align: middle; }
+.prose figure { margin: 2.5em 0; text-align: center; }
+.prose figure img { display: block; margin-inline: auto; }
+.prose figcaption { margin-top: .8rem; font-size: .875rem; line-height: 1.6; color: var(--muted); text-wrap: balance; }
+
+/* math: KaTeX MathML, drawn with the system math font */
+.math-word { white-space: nowrap; } /* lib/markdown.mjs: inline math and the word right after it */
+math { font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', math; font-size: 1.21em; } /* KaTeX's own scale */
+/* scripts never under 11px (MathML 3's scriptminsize, dropped by MathML Core): a script of a script, a root index,
+   or a script in a table, footnote or alert would be. A \dfrac (mstyle displaystyle) keeps its full size. */
+math :is(msub, msup, msubsup, mmultiscripts) > :not(:first-child),
+math :is(munder, mover, munderover):not([accent="true"], [accentunder="true"]) > :not(:first-child),
+math:not([display="block"]) mfrac:not(mstyle[displaystyle="true"] > *) > * { font-size: max(.7em, .85rem); }
+math mroot > :last-child { font-size: max(.55em, .85rem); }
+/* Chromium implements MathML Core, which has no columnalign/columnspacing: restore KaTeX's aligned (right left
+   pairs, no gaps) and cases (left) columns. Other browsers read the attributes and come out the same. */
+math mtable[columnspacing="0em"] > mtr > mtd { padding-inline: 0; }
+math mtable[columnalign^="right left"] > mtr > mtd:nth-child(odd) { text-align: -webkit-right; }
+math mtable[columnalign^="right left"] > mtr > mtd:nth-child(even) { text-align: -webkit-left; }
+math mtable:is([columnalign="left"], [columnalign="left left"]) > mtr > mtd { text-align: -webkit-left; }
+.math-display {
+  margin: 1.5em 0;
+  padding-block: .3em; /* room for tall glyphs (.25em of the 1.21em math): overflow-x:auto also clips vertically */
+  overflow: auto hidden; /* and no 1px vertical scroll when the math's height rounds up */
+  text-align: center;
+}
+
+/* tables: as wide as their content, scrolling inside when wider than the column */
+.prose table {
+  display: block;
+  width: max-content;
+  max-width: calc(100% + 10px);
+  overflow-x: auto;
+  margin: 2em -5px;
+  padding-inline: 5px; /* room for focus rings: the scroller clips anything outside; the rules stay on the cells */
+  border-collapse: collapse;
+  font-size: .875rem;
+  line-height: 1.6;
+}
+.prose th,
+.prose td { padding: .6rem .9rem; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+.prose th { border-top: 1px solid var(--ink); border-bottom-color: var(--ink-2); font-weight: 700; }
+.prose tr:last-child td { border-bottom-color: var(--ink); }
+.prose th:first-child,
+.prose td:first-child { padding-left: 0; }
+.prose th:last-child,
+.prose td:last-child { padding-right: 0; }
+.prose :is(th, td)[align="center"] { text-align: center; }
+.prose :is(th, td)[align="right"] { text-align: right; }
+/* clip what scrolls into that 5px room (row rules, glyph slivers) until a focus ring needs it */
+.prose table:not(:focus-visible, :has(:focus-visible)) { clip-path: inset(0 5px); }
+.prose :is(th, td) :is(a[href^="http"], code.code-wrap) { overflow-wrap: break-word; } /* anywhere would shrink a column to one character instead of letting the table scroll */
+
+/* details */
+.prose details {
+  margin: 2em 0;
+  border-block: 1px dashed var(--rule);
+}
+.prose details > summary {
+  display: flex;
+  gap: .75em;
+  padding: .8rem 0;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+.prose details > summary::-webkit-details-marker { display: none; }
+.prose details > summary::before { content: "+"; width: 1ch; color: var(--accent); }
+.prose details[open] > summary::before { content: "-"; }
+.prose details > :not(summary) { margin-block: 0 1em; } /* block only: a table keeps its -5px focus-ring room */
+.prose details > :not(summary, table) { font-size: .9375rem; }
+
+/* rule */
+.prose hr { height: auto; margin: 3.5em 0; border: 0; text-align: center; overflow: visible; }
+.prose hr::before { content: "*   *   *"; white-space: pre; color: var(--muted); }
+
+/* footnotes */
+[data-footnote-ref] { padding: 0 .15em; font-size: .85rem; font-weight: 700; text-decoration: none; }
+[data-footnote-ref]::before { content: "["; }
+[data-footnote-ref]::after { content: "]"; }
+.footnotes {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed var(--rule);
+  font-size: .875rem;
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+.prose .footnotes > h2 {
+  /* the label is screen-reader-only by default; here it is shown as a small heading */
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0 0 1rem;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border: 0;
+  font-size: .875rem;
+  color: var(--muted);
+}
+.footnotes ol { padding-left: 1.75em; }
+.footnotes li { margin-block: .4em; }
+.footnotes li:target { background: var(--accent-wash); outline: 6px solid var(--accent-wash); }
+.footnotes p { margin: 0; }
+.data-footnote-backref { margin-left: .35em; text-decoration: none; }
+
+/* ---------- code blocks (Shiki, dual theme) ---------- */
+.code {
+  position: relative;
+  margin: 2em 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow: hidden;
+}
+.code-head {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  min-height: 2.6rem;
+  padding: .35rem .5rem .35rem 1.25rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: .875rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.code-title { color: var(--ink); font-weight: 700; overflow-wrap: anywhere; }
+.code-lang { font-size: .85rem; text-transform: uppercase; }
+.copy {
+  flex: none;
+  margin-left: auto;
+  padding: .2rem .6rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  background: var(--code-bg);
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.copy:hover { border-color: var(--ink-2); color: var(--ink); }
+.copy[data-done] { border-color: var(--accent); color: var(--accent); }
+.code-head .copy:focus-visible { outline-offset: 2px; } /* .code clips: the ring must fit the .35rem above the button */
+.code--bare .copy { position: absolute; top: .55rem; right: .55rem; z-index: 1; }
+/* touch screens always show the button: give it its own strip instead of covering the first line */
+@media (hover: none) { .code.code--bare pre { padding-top: 2.75rem; } } /* beats .code pre below */
+@media (hover: hover) {
+  .code--bare .copy { opacity: 0; transition: opacity .15s; }
+  .code--bare:is(:hover, :focus-within) .copy { opacity: 1; }
+}
+
+/* The pre scrolls, never the page. .lines is as wide as the widest line and every .line fills it,
+   so highlight backgrounds run the whole scroll width. */
+.code pre {
+  margin: 0;
+  padding: 1rem 0;
+  overflow-x: auto;
+  font-size: .875rem;
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.code pre:focus-visible { outline-offset: -2px; } /* .code clips anything drawn outside */
+.code code { display: block; }
+.code :is(.lines, .line) { display: inline-block; min-width: 100%; }
+.code .line {
+  position: relative;
+  min-height: 1lh;
+  padding-inline: 1.25rem;
+  vertical-align: top;
+}
+
+.code pre.line-numbers code { counter-reset: line var(--ln, 0); }
+.code pre.line-numbers .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 3ch;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: var(--muted);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.code .line.highlighted { background: var(--hl); box-shadow: inset 3px 0 0 var(--accent); }
+.code .highlighted-word { padding-block: 1px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--accent); } /* a fill would drop tokens under 4.5:1 */
+.code .line.diff.add { background: var(--add); }
+.code .line.diff.remove { background: var(--del); }
+/* // [!code ++/--] lines also get a sign, so the change is not told by color alone */
+.code pre.has-diff .line.diff::after { position: absolute; left: .45rem; user-select: none; -webkit-user-select: none; }
+.code pre.has-diff .line.diff.add::after { content: "+"; color: var(--add-ink); }
+.code pre.has-diff .line.diff.remove::after { content: "-"; color: var(--del-ink); }
+.code pre.has-focused .line:not(.focused) { opacity: .45; filter: blur(.05rem); transition: opacity .2s, filter .2s; }
+.code pre.has-focused:is(:hover, :focus-visible) .line { opacity: 1; filter: none; }
+
+/* defaultColor:false: tokens only carry --shiki-light/--shiki-dark; pick one per theme. Theme italics are
+   ignored on purpose (no italic face). */
+.shiki span { color: var(--shiki-light); font-weight: var(--shiki-light-font-weight); }
+/* The faintest github-*-default tokens (light comments, functions and keywords; dark comments) drop under 4.5:1
+   on the warm code background or on highlighted and diff lines; darken (or lighten) just those. */
+.shiki span[style*="--shiki-light:#6e7781" i] { color: #58616c; }
+.shiki span[style*="--shiki-light:#8250df" i] { color: #7342cc; }
+.shiki span[style*="--shiki-light:#cf222e" i] { color: #bf1b29; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .shiki span { color: var(--shiki-dark); font-weight: var(--shiki-dark-font-weight); }
+  :root:not([data-theme="light"]) .shiki span[style*="--shiki-dark:#8b949e" i] { color: #949ca6; }
+}
+:root[data-theme="dark"] .shiki span { color: var(--shiki-dark); font-weight: var(--shiki-dark-font-weight); }
+:root[data-theme="dark"] .shiki span[style*="--shiki-dark:#8b949e" i] { color: #949ca6; }
+
+/* mermaid: source text until app.js draws it (and for good if drawing fails) */
+.mermaid-block {
+  margin: 2em 0;
+  padding: 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow-x: auto;
+}
+pre.mermaid {
+  margin: 0;
+  font-size: .875rem;
+  line-height: 1.5;
+  white-space: pre;
+  /* inherited by the drawn labels: Korean wraps at word boundaries, and a long unspaced label still fits its box */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+pre.mermaid:has(> svg) { white-space: normal; width: max-content; min-width: 100%; }
+pre.mermaid > svg { display: block; max-width: 100%; margin-inline: auto; }
+/* app.js sets --w to the drawing's own width: fitted to the column its labels would shrink to 5-7px, so it keeps
+   its natural size and scrolls inside the block instead. */
+pre.mermaid > svg { min-width: var(--w); }
+pre.mermaid-error::before {
+  content: attr(data-note);
+  display: block;
+  margin-bottom: .75rem;
+  white-space: normal;
+  font-size: .875rem;
+  color: var(--caution);
+}
+
+
+/* ---------- after the post: previous/next, comments ---------- */
+.post-after { margin-top: 3rem; }
+.post-nav { display: grid; gap: .5rem; padding-top: 1rem; border-top: 1px dashed var(--rule); }
+.pn { display: flex; flex-wrap: wrap; gap: .25rem 1rem; text-decoration: none; }
+.pn-label { color: var(--muted); }
+a.pn .pn-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .22em; }
+a.pn:hover { background: none; }
+a.pn:hover .pn-title { background: var(--ink); color: var(--paper); text-decoration: none; }
+.pn--empty .pn-title { color: var(--muted); }
+
+.comments { margin-top: 2.5rem; }
+.comments > h2 { margin: 0 0 1rem; font-size: 1rem; }
+.comments noscript { color: var(--muted); }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
